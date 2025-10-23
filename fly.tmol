@@ -1,27 +1,17 @@
-app = "bolao-pix-telegram"  # Pode mudar o nome se quiser
+# fly.toml — Configuração do Fly.io
+app = "bolao-pix-telegram"  # nome do seu app no Fly.io
+primary_region = "gru"      # servidor mais próximo do Brasil (GRU = São Paulo)
 
 [build]
   builder = "paketobuildpacks/builder:base"
-  buildpacks = ["paketo-buildpacks/php"]
 
 [env]
-  APP_ENV = "production"
   PORT = "8080"
-  PHP_INI_SCAN_DIR = "/layers/paketo-buildpacks_php-composer/composer/ini:/workspace/.php.ini"
 
-[[services]]
+[http_service]
   internal_port = 8080
-  protocol = "tcp"
-
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
-
-  [[services.tcp_checks]]
-    interval = "15s"
-    timeout = "2s"
-    grace_period = "30s"
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
