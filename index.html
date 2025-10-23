@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOLÃO DA VIRADA 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #005A9C;
+            color: white;
+            font-weight: bold;
+            border: none;
+        }
+        button:hover { background-color: #003f73; }
+        img { margin-top: 15px; width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🎉 BOLÃO DA VIRADA 2025 🎉</h2>
+        <p>Valor da cota: <strong>R$85,00</strong></p>
+
+        <input id="nome" type="text" placeholder="Seu nome completo">
+        <input id="telefone" type="text" placeholder="Seu WhatsApp">
+
+        <button onclick="gerarPix()">Quero Participar</button>
+
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        async function gerarPix() {
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+
+            if (!nome || !telefone) {
+                alert('Preencha todos os campos');
+                return;
+            }
+
+            const res = await fetch('gerar-pix.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}`
+            });
+
+            const data = await res.json();
+            if (data.qrcode) {
+                document.getElementById('resultado').innerHTML = `
+                    <p><strong>Escaneie o QR Code abaixo e realize o pagamento:</strong></p>
+                    <img src="data:image/png;base64,${data.qrcode}">
+                    <p>${data.copiaecola}</p>
+                `;
+            } else {
+                alert('Erro ao gerar Pix');
+            }
+        }
+    </script>
+</body>
+</html>
