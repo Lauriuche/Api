@@ -1,5 +1,5 @@
 # fly.toml — Configuração do Fly.io
-app = "bolao-pix-telegram"  # nome do seu app no Fly.io
+app = "aapi"  # nome do seu app no Fly.io
 primary_region = "gru"      # servidor mais próximo do Brasil (GRU = São Paulo)
 
 [build]
