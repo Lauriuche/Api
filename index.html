@@ -88,7 +88,18 @@
 <div class="modal-overlay" id="modalSenha"><div class="modal" style="max-width:300px;"><h3 style="margin:0; color:#c0392b;">Senha Admin</h3><div id="senhaDisplay" style="font-size:2rem; letter-spacing:5px; text-align:center; height:40px; color:#333;"></div><div class="numpad"><button class="num-btn" onclick="addDigit('1')">1</button><button class="num-btn" onclick="addDigit('2')">2</button><button class="num-btn" onclick="addDigit('3')">3</button><button class="num-btn" onclick="addDigit('4')">4</button><button class="num-btn" onclick="addDigit('5')">5</button><button class="num-btn" onclick="addDigit('6')">6</button><button class="num-btn" onclick="addDigit('7')">7</button><button class="num-btn" onclick="addDigit('8')">8</button><button class="num-btn" onclick="addDigit('9')">9</button><button class="num-btn" style="background:#c0392b" onclick="clearDigit()">C</button><button class="num-btn" onclick="addDigit('0')">0</button><button class="num-btn" style="background:#7f8c8d" onclick="closeSenha()">✕</button></div></div></div>
 <div class="modal-overlay" id="modalPagamentoAdm"><div class="modal" style="max-width:300px;"><h3 style="margin:0; color:#c0392b;">Definir Valor</h3><p id="nomePgto" style="text-align:center; font-weight:bold; color:#333; margin-bottom:5px;"></p><input type="number" id="valorInput" placeholder="R$ 0,00" style="font-size:1.5rem; border:2px solid #ddd; margin-bottom:10px;"><div style="display:flex; gap:5px; margin-bottom:10px;"><button onclick="setValor(0)" style="flex:1; background:#e74c3c; padding:10px; font-size:0.8rem;">❌ Zerar</button><button onclick="setValor(100)" style="flex:1; background:#00b894; padding:10px; font-size:0.8rem;">✅ Total</button></div><button id="salvarPgto" style="background:#27ae60; width:100%;">💾 Salvar</button><button onclick="document.getElementById('modalPagamentoAdm').style.display='none'" style="background:#7f8c8d; width:100%; margin-top:5px;">Cancelar</button></div></div>
 <div class="modal-overlay" id="modalRegras"><div class="modal"><h3 style="margin-top:0; color:#c0392b;">Regras do Bolão</h3><div style="text-align:left; line-height:1.6; color:#333;"><p>✅ <strong>Valor:</strong> R$ 100,00 (Cota Única)</p><p>📅 <strong>Prazo:</strong> Até 10 de Dezembro</p><p>⚠️ <strong>Regra:</strong> Não pagou até a data, perde a vaga.</p></div><button onclick="document.getElementById('modalRegras').style.display='none'" style="background:#c0392b; width:100%; margin-top:15px;">Fechar</button></div></div>
-<div class="modal-overlay" id="modalConfirmacao"><div class="modal"><div style="font-size:3rem;">🎉</div><h3 style="margin:0; color:#00b894;">Cadastro Realizado!</h3><div style="background:#f1f2f6; padding:15px; border-radius:10px; text-align:left; margin-bottom:10px; color:#333;"><div><strong>Nome:</strong> <span id="confNome" style="text-transform:uppercase;"></span></div><div><strong>Comprovante:</strong> <span>Enviar no WhatsApp</span></div></div><button id="btnZapConf" style="background:#25d366; width:100%;">Enviar Comprovante</button><button onclick="document.getElementById('modalConfirmacao').style.display='none'" style="background:#7f8c8d; width:100%; margin-top:10px;">Fechar</button></div></div>
+
+<div class="modal-overlay" id="modalConfirmacao">
+    <div class="modal">
+        <div style="font-size:3rem;">🎉</div>
+        <h3 style="margin:0; color:#00b894;">Cadastro Realizado!</h3>
+        <div style="background:#f1f2f6; padding:15px; border-radius:10px; text-align:center; margin-bottom:10px; color:#333;">
+            <div><strong>Nome:</strong> <span id="confNome" style="text-transform:uppercase;"></span></div>
+            <div style="margin-top:10px; font-size:0.8rem;">Agora é só aguardar ou realizar o pagamento.</div>
+        </div>
+        <button onclick="document.getElementById('modalConfirmacao').style.display='none'" style="background:#7f8c8d; width:100%; margin-top:10px;">Fechar</button>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -169,28 +180,42 @@ document.getElementById('btnSelectAll').addEventListener('click',()=>{const f=pa
 function getCurrentFilterFn(){if(currentFilter==='pagos')return p=>(p.valorPago||0)>=CONFIG.VALOR; if(currentFilter==='pendentes')return p=>(p.valorPago||0)<CONFIG.VALOR; return p=>true;}
 document.getElementById('filtroTodos').onclick=()=>{currentFilter='todos';renderList(getCurrentFilterFn());}; document.getElementById('filtroPagos').onclick=()=>{currentFilter='pagos';renderList(getCurrentFilterFn());}; document.getElementById('filtroPendentes').onclick=()=>{currentFilter='pendentes';renderList(getCurrentFilterFn());};
 
+// CADASTRO COM BLOQUEIO DE DUPLICIDADE CORRIGIDO
 document.getElementById('cadastrar').addEventListener('click', async()=>{
-    const nR=document.getElementById('nome').value.trim(); const n=nR.toUpperCase(); const t=document.getElementById('telefone').value.trim();
-    if(!n||!t)return alert("Preencha todos os campos!"); if(participantes.length>=CONFIG.LIMITE)return alert("Bolão lotado!");
+    const nR = document.getElementById('nome').value.trim(); 
+    const n = nR.toUpperCase(); 
+    const tRaw = document.getElementById('telefone').value.trim();
+    const tL = tRaw.replace(/\D/g,''); // Limpa telefone para comparação
     
-    // --- VERIFICAÇÃO DE DUPLICIDADE (NOME OU TELEFONE) ---
-    const tL = t.replace(/\D/g,'');
+    if(!n || !tRaw) return alert("Preencha todos os campos!"); 
+    if(participantes.length >= CONFIG.LIMITE) return alert("Bolão lotado!");
+
+    // --- VERIFICAÇÃO DE DUPLICIDADE ROBUSTA ---
+    // Garante que p.telefone existe antes de tentar substituir, evitando erros
     const duplicado = participantes.some(p => {
-        const pn = p.nome.toUpperCase();
-        const pt = p.telefone.replace(/\D/g,'');
-        return pn === n || pt === tL;
+        const pNome = (p.nome || "").toUpperCase();
+        const pTel = (p.telefone || "").replace(/\D/g,'');
+        return pNome === n || pTel === tL;
     });
 
-    if (duplicado) {
-        alert("⚠️ ATENÇÃO: Já existe um cadastro com este NOME ou TELEFONE na lista.");
-        return; // Bloqueia o cadastro
+    if(duplicado) {
+        alert("⚠️ ERRO: Já existe um participante com este Nome ou Telefone!");
+        return;
     }
-    // ------------------------------------------------------
+    // -------------------------------------------
 
-    const num=participantes.length+1; await update(push(dbRef),{nome:n,telefone:t,numero:num,valorPago:0,data:new Date().toISOString()});
-    document.getElementById('nome').value=''; document.getElementById('telefone').value=''; document.getElementById('confNome').innerText=n; document.getElementById('modalConfirmacao').style.display='flex'; confetti({particleCount:150,spread:70,origin:{y:0.6}}); updateData(); setTimeout(enviarListaTelegram,1500);
+    const num = participantes.length + 1; 
+    await update(push(dbRef),{nome:n, telefone:tRaw, numero:num, valorPago:0, data:new Date().toISOString()});
+    
+    document.getElementById('nome').value=''; 
+    document.getElementById('telefone').value=''; 
+    document.getElementById('confNome').innerText=n; 
+    document.getElementById('modalConfirmacao').style.display='flex'; 
+    confetti({particleCount:150,spread:70,origin:{y:0.6}}); 
+    updateData(); 
+    setTimeout(enviarListaTelegram,1500);
 });
-document.getElementById('btnZapConf').onclick=()=>{const nc=document.getElementById('confNome').innerText; window.open(`https://wa.me/${WHATSAPP_ADM}?text=${encodeURIComponent(`Olá, sou ${nc}, Me cadastrei no Bolão!`)}`,'_blank');};
+
 document.getElementById('verLista').onclick=()=>{document.getElementById('overlay').style.display='flex';renderList();}; document.getElementById('verRegras').onclick=()=>{document.getElementById('modalRegras').style.display='flex';}; document.getElementById('entrarGrupo').onclick=()=>{window.open('https://chat.whatsapp.com/SEU_LINK_AQUI','_blank');};
 document.getElementById('buscar').addEventListener('input',(e)=>{const t=e.target.value.toLowerCase();renderList(p=>p.nome.toLowerCase().includes(t));});
 document.getElementById('salvarPgto').onclick=async()=>{const v=parseFloat(document.getElementById('valorInput').value); if(isNaN(v))return alert("Valor inválido"); const u={}; selecionados.forEach(p=>u[`participantes/${p.key}/valorPago`]=v); await update(ref(db),u); alert("Salvo!"); document.getElementById('modalPagamentoAdm').style.display='none'; selecionados=[]; updateData(); renderList(getCurrentFilterFn()); setTimeout(enviarListaTelegram,1500);};
