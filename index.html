@@ -6,12 +6,13 @@
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2d3436">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="Bolão Camino">
-<link rel="apple-touch-icon" href="1001855377.png">
-<link rel="icon" type="image/png" href="1001855377.png">
+<meta name="apple-mobile-web-app-title" content="Bolão Camino">
+
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
 
 <title>Bolão Colaboradores Camino</title>
 
@@ -20,7 +21,10 @@
     :root { --red-camino: #c0392b; --green-btn: #00b894; --yellow-num: #f1c40f; --dark-bg: #2d3436; }
     body { margin: 0; padding: 15px; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; user-select: none; -webkit-tap-highlight-color: transparent; }
     .container { background: #ffffff; width: 100%; max-width: 450px; border-radius: 25px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); text-align: center; display: flex; flex-direction: column; }
+    
+    /* LOGO DA PÁGINA */
     .logo-img { max-width: 85%; height: auto; margin: 5px auto 20px auto; max-height: 120px; }
+    
     .info-row { font-size: 0.95rem; color: #555; margin-bottom: 5px; }
     .date-row { font-size: 0.9rem; color: #444; margin-bottom: 15px; }
     .highlight-area { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; }
@@ -65,6 +69,7 @@
 
 <div class="container">
     <img src="1001855377.png" alt="Logo Camino Supermercados" class="logo-img">
+    
     <div class="info-row"><span>🎰 60 pessoas</span> • <span>💰 R$ 100,00 por pessoa</span></div>
     <div class="date-row">📅 <strong>Pagamento:</strong> até 10 de Dezembro</div>
     <div class="highlight-area"><div class="prize-badge">🏆 R$ 850 Milhões</div><button id="verRegras" class="btn-regras-small">📋 Regras</button></div>
@@ -91,8 +96,8 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
-            .then(() => console.log('SW registrado'))
-            .catch(() => console.log('Erro SW'));
+            .then(reg => console.log('App registrado:', reg))
+            .catch(err => console.log('Erro ao registrar App:', err));
         });
     }
 </script>
