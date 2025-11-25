@@ -1,0 +1,23 @@
+{
+  "name": "Bolão Camino",
+  "short_name": "Bolão",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f1f2f6",
+  "theme_color": "#2d3436",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "1001855377.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "1001855377.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+
+
