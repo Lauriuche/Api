@@ -22,7 +22,7 @@
     body { margin: 0; padding: 15px; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; user-select: none; -webkit-tap-highlight-color: transparent; }
     .container { background: #ffffff; width: 100%; max-width: 450px; border-radius: 25px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); text-align: center; display: flex; flex-direction: column; }
     
-    /* LOGO DA PÁGINA */
+    /* LOGO */
     .logo-img { max-width: 85%; height: auto; margin: 5px auto 20px auto; max-height: 120px; }
     
     .info-row { font-size: 0.95rem; color: #555; margin-bottom: 5px; }
@@ -172,6 +172,21 @@ document.getElementById('filtroTodos').onclick=()=>{currentFilter='todos';render
 document.getElementById('cadastrar').addEventListener('click', async()=>{
     const nR=document.getElementById('nome').value.trim(); const n=nR.toUpperCase(); const t=document.getElementById('telefone').value.trim();
     if(!n||!t)return alert("Preencha todos os campos!"); if(participantes.length>=CONFIG.LIMITE)return alert("Bolão lotado!");
+    
+    // --- VERIFICAÇÃO DE DUPLICIDADE (NOME OU TELEFONE) ---
+    const tL = t.replace(/\D/g,'');
+    const duplicado = participantes.some(p => {
+        const pn = p.nome.toUpperCase();
+        const pt = p.telefone.replace(/\D/g,'');
+        return pn === n || pt === tL;
+    });
+
+    if (duplicado) {
+        alert("⚠️ ATENÇÃO: Já existe um cadastro com este NOME ou TELEFONE na lista.");
+        return; // Bloqueia o cadastro
+    }
+    // ------------------------------------------------------
+
     const num=participantes.length+1; await update(push(dbRef),{nome:n,telefone:t,numero:num,valorPago:0,data:new Date().toISOString()});
     document.getElementById('nome').value=''; document.getElementById('telefone').value=''; document.getElementById('confNome').innerText=n; document.getElementById('modalConfirmacao').style.display='flex'; confetti({particleCount:150,spread:70,origin:{y:0.6}}); updateData(); setTimeout(enviarListaTelegram,1500);
 });
