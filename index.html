@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Pagou</title>
+    </head>
+<body>
+
+<div class="container">
+    <h2>Pagamento com Pagou</h2>
+
+    <form id="form-pagamento">
+        <label for="nome">Item:</label>
+        <input type="text" id="nome" value="Produto Teste" required>
+        <label for="valor">Valor (R$):</label>
+        <input type="number" id="valor" step="0.01" value="25.00" required>
+        <label for="cliente">Nome:</label>
+        <input type="text" id="cliente" value="Cliente GitHub" required>
+        <button type="submit">Pagar com Pagou</button>
+    </form>
+
+    <div id="resultado">Aguardando...</div>
+</div>
+
+<script>
+    // 🚨 SUBSTITUA ABAIXO PELA SUA URL REAL DO VERCEL OBTIDA NO PASSO 4!
+    const API_URL = 'https://pagou-api-seu-nome.vercel.app/api/criar-cobranca-pagou'; 
+
+    document.getElementById('form-pagamento').addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+        
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = 'Criando cobrança...';
+
+        const valor = parseFloat(document.getElementById('valor').value);
+        const valorEmCentavos = Math.round(valor * 100);
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: valorEmCentavos,
+                    description: document.getElementById('nome').value,
+                    customerName: document.getElementById('cliente').value
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                resultadoDiv.innerHTML = `<p style="color: green;">✅ Sucesso! Redirecionando...</p>`;
+                window.open(data.paymentLink, '_blank'); // Abre a página de pagamento do Pagou
+            } else {
+                resultadoDiv.innerHTML = `<p style="color: red;">❌ Erro: ${data.error || 'Falha na comunicação.'}</p>`;
+            }
+
+        } catch (error) {
+            resultadoDiv.innerHTML = `<p style="color: red;">❌ Erro de Conexão. Verifique a URL da API.</p>`;
+        }
+    });
+</script>
+
+</body>
+</html>

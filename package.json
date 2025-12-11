@@ -1,0 +1,12 @@
+{
+  "name": "pagou-backend-api",
+  "version": "1.0.0",
+  "description": "API de pagamento do Pagou via Vercel Serverless Function",
+  "main": "api/criar-cobranca-pagou.js",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
