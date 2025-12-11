@@ -1,28 +1,107 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <title>Checkout Pagou (Frontend)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Pagou (Teste Local)</title>
+    <style>
+        /* Estilos CSS para melhor visualização */
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 450px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
+        input[type="text"], input[type="number"] { width: 95%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; margin-top: 30px; width: 100%; font-size: 18px; transition: background-color 0.3s; }
+        button:hover { background-color: #218838; }
+        #resultado { margin-top: 25px; padding: 15px; border: 1px solid #c3e6cb; background-color: #d4edda; border-radius: 6px; min-height: 50px; font-size: 14px; }
+        .success { color: #155724; font-weight: bold; }
+        .error { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; padding: 10px; border-radius: 5px; }
+        .loading { color: #004085; background-color: #cce5ff; border-color: #b8daff; padding: 10px; border-radius: 5px; }
+    </style>
 </head>
 <body>
 
-    <script>
-    document.getElementById('form-pagamento').addEventListener('submit', async function(event) {
-        // ...
+<div class="container">
+    <h2>Pagamento com Pagou (Teste)</h2>
+
+    <form id="form-pagamento">
+        <label for="nome">Nome do Produto/Serviço:</label>
+        <input type="text" id="nome" value="Consultoria de Marketing" required>
+
+        <label for="valor">Valor (R$):</label>
+        <input type="number" id="valor" step="0.01" value="150.00" required>
         
-        // 🚨 MUDANÇA CRUCIAL: ESTE ENDEREÇO DEVE SER SUBSTITUÍDO PELA URL DO SEU BACKEND HOSPEDADO
-        // Exemplo: 'https://seunome-pagou-api.vercel.app/criar-cobranca-pagou'
-        const API_URL = 'https://SUA_URL_SECRETA_DO_BACKEND_AQUI/criar-cobranca-pagou'; 
+        <label for="cliente">Nome Completo do Cliente:</label>
+        <input type="text" id="cliente" value="Carlos Testador" required>
+
+        <button type="submit">Finalizar e Pagar com Pagou</button>
+    </form>
+
+    <div id="resultado" class="loading">
+        Aguardando ação.
+    </div>
+</div>
+
+<script>
+    // 🚨 ENDEREÇO DO SEU SERVIDOR BACKEND (Node.js)
+    // Se o seu server.js está rodando na porta 3000
+    const API_URL = 'http://localhost:3000/criar-cobranca-pagou'; 
+
+    document.getElementById('form-pagamento').addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+        
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.className = 'loading';
+        resultadoDiv.innerHTML = 'Criando cobrança... Não feche a página.';
+
+        const nomeProduto = document.getElementById('nome').value;
+        const valor = parseFloat(document.getElementById('valor').value);
+        const nomeCliente = document.getElementById('cliente').value;
+
+        // O valor deve ser enviado em centavos (Ex: 150.00 -> 15000)
+        const valorEmCentavos = Math.round(valor * 100);
 
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: { /* ... */ },
-                body: JSON.stringify({ /* ... dados ... */ })
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: valorEmCentavos,
+                    description: nomeProduto,
+                    customerName: nomeCliente
+                })
             });
 
-            // ... (Restante do código de sucesso/erro) ...
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Sucesso: Recebeu o link do Pagou
+                resultadoDiv.className = 'success';
+                resultadoDiv.innerHTML = `
+                    <p>✅ Cobrança Criada com Sucesso!</p>
+                    <p>ID: <strong>${data.id}</strong></p>
+                    <p>Clique no link para ir para o pagamento:</p>
+                    <a href="${data.paymentLink}" target="_blank" style="word-break: break-all;">Acessar Pagamento Pagou</a>
+                `;
+
+            } else {
+                // Erro: Erro retornado pelo seu servidor (Backend) ou pela API do Pagou
+                const errorMessage = data.error || 'Erro desconhecido ao processar o pagamento.';
+                resultadoDiv.className = 'error';
+                resultadoDiv.innerHTML = `<p>❌ Erro ao criar cobrança:</p><p>${errorMessage}</p>`;
+                console.error('Erro detalhado do Servidor/Pagou:', data);
+            }
+
         } catch (error) {
-            // ... (Restante do código de erro) ...
+            // Erro de Conexão: O servidor não está rodando ou o endereço está errado.
+            resultadoDiv.className = 'error';
+            resultadoDiv.innerHTML = `
+                <p>❌ Erro de Conexão com o Servidor!</p>
+                <p>Verifique se o Backend (Node.js) está rodando em ${API_URL} e se não há problemas de CORS (Cross-Origin).</p>
+            `;
+            console.error('Erro de Fetch (Rede):', error);
         }
     });
 </script>
